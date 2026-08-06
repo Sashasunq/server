@@ -3,6 +3,9 @@ name: Kubernetes smoke test
 # Runs after the image is built, so the cluster gets the image that was just
 # pushed rather than whatever the chart happens to pin.
 on:
+  push:
+    branches:
+      - 'ci/**'
   workflow_run:
     workflows: ["DockerHub"]
     types: [completed]
