@@ -1,0 +1,35 @@
+{{- $ing := .Values.api.ingress }}
+{{- if and $ing.enabled $ing.host }}
+{{- $defaults := dict
+      "nginx.ingress.kubernetes.io/proxy-body-size" "2g"
+      "nginx.ingress.kubernetes.io/proxy-request-buffering" "off"
+      "nginx.ingress.kubernetes.io/proxy-read-timeout" "3600"
+      "nginx.ingress.kubernetes.io/proxy-send-timeout" "3600" }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "ffmpeglab.fullname" . }}
+  labels:
+    {{- include "ffmpeglab.labels" . | nindent 4 }}
+  annotations:
+    {{- toYaml (merge (deepCopy $ing.annotations) $defaults) | nindent 4 }}
+spec:
+  ingressClassName: {{ $ing.className }}
+  {{- with $ing.tls.secretName }}
+  tls:
+    - hosts:
+        - {{ $ing.host | quote }}
+      secretName: {{ . }}
+  {{- end }}
+  rules:
+    - host: {{ $ing.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "ffmpeglab.fullname" . }}-api
+                port:
+                  number: {{ .Values.api.service.port }}
+{{- end }}

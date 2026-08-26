@@ -69,6 +69,22 @@ api:
     type: ClusterIP
     port: 3000
     annotations: {}
+
+  # One route per release, so installing a tenant registers it. The host is a
+  # plain value: the chart stays unaware of tenants and whoever installs it
+  # decides the name.
+  ingress:
+    enabled: false
+    className: nginx
+    host: ""
+    # Merged over the defaults the workload needs — body size for video, long
+    # timeouts for render progress and log streams. Override by repeating a key.
+    annotations: {}
+    tls:
+      # Empty serves the host with the controller's default certificate, which is
+      # the documented setup: one wildcard Origin CA cert on the controller
+      # rather than one per release. Name a Secret only to override that.
+      secretName: ""
   # readinessPath should say whether the process can do its work, not just that
   # it is up: a pod waiting for credentials would otherwise be sent traffic.
   # Liveness stays lenient so waiting is never mistaken for being stuck.
